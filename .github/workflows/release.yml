@@ -1,0 +1,56 @@
+name: Build and Deploy to RunPod
+
+on:
+  push:
+    branches: [main]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}/fish-speech-tts
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/fish-speech-tts:latest
+            ghcr.io/${{ github.repository }}/fish-speech-tts:${{ github.sha }}
+
+      - name: Update RunPod Endpoint with new image
+        run: |
+          IMAGE="ghcr.io/${{ github.repository }}/fish-speech-tts:${{ github.sha }}"
+          echo "Updating RunPod with image: $IMAGE"
+          
+          TEMPLATE=$(curl -s -X POST "https://api.runpod.io/graphql" \
+            -H "Authorization: Bearer ${{ secrets.RUNPOD_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"query\": \"query { myself { endpoint(id: \\\"${{ secrets.RUNPOD_ENDPOINT_ID }}\\\") { template { id imageName containerDiskInGb env { key value } isServerless name } } } }\"}")
+          echo "Template response: $TEMPLATE"
+          
+          TEMPLATE_ID=$(echo $TEMPLATE | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['data']['myself']['endpoint']['template']['id'])")
+          echo "Template ID: $TEMPLATE_ID"
+          
+          UPDATE=$(curl -s -X POST "https://api.runpod.io/graphql" \
+            -H "Authorization: Bearer ${{ secrets.RUNPOD_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "{\"query\": \"mutation { saveTemplate(input: { id: \\\"$TEMPLATE_ID\\\", imageName: \\\"$IMAGE\\\", name: \\\"fish-speech-tts-v2\\\", containerDiskInGb: 10, volumeInGb: 0, dockerArgs: \\\"\\\", env: [{key: \\\"CHECKPOINT_PATH\\\", value: \\\"/runpod-volume/fish-speech/checkpoints/openaudio-s1-mini\\\"}, {key: \\\"DECODER_CHECKPOINT\\\", value: \\\"/runpod-volume/fish-speech/checkpoints/openaudio-s1-mini/codec.pth\\\"}, {key: \\\"DECODER_CONFIG\\\", value: \\\"modded_dac_vq\\\"}, {key: \\\"VOICE_HINDI\\\", value: \\\"/runpod-volume/fish-audio/voices/hindi/reference_hindi.wav\\\"}, {key: \\\"VOICE_ENGLISH\\\", value: \\\"/runpod-volume/fish-audio/voices/english/reference_english.wav\\\"}, {key: \\\"COMPILE_MODEL\\\", value: \\\"false\\\"}] }) { id imageName } }\"}")
+          echo "Update response: $UPDATE"

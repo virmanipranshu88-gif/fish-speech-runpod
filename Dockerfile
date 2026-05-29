@@ -18,8 +18,8 @@ COPY checkpoints/openaudio-s1-mini /app/checkpoints/openaudio-s1-mini
 COPY handler.py .
 
 # Environment variables
-ENV CHECKPOINT_PATH=/app/checkpoints/openaudio-s1-mini
-ENV DECODER_CHECKPOINT=/app/checkpoints/openaudio-s1-mini/codec.pth
+ENV CHECKPOINT_PATH=/runpod-volume/fish-speech/checkpoints/openaudio-s1-mini
+ENV DECODER_CHECKPOINT=/runpod-volume/fish-speech/checkpoints/openaudio-s1-mini/codec.pth
 ENV DECODER_CONFIG=modded_dac_vq
 ENV PYTHONUNBUFFERED=1
 
