@@ -28,23 +28,5 @@ jobs:
             pv8088/fish-speech-tts:latest
             pv8088/fish-speech-tts:${{ github.sha }}
 
-      - name: Get RunPod template ID
-        id: get_template
-        run: |
-          TEMPLATE=$(curl -s -X POST "https://api.runpod.io/graphql" \
-            -H "Authorization: Bearer ${{ secrets.RUNPOD_API_KEY }}" \
-            -H "Content-Type: application/json" \
-            -d "{\"query\": \"query { myself { endpoint(id: \\\"${{ secrets.RUNPOD_ENDPOINT_ID }}\\\") { template { id name containerDiskInGb } } } }\"}")
-          echo "Template: $TEMPLATE"
-          TEMPLATE_ID=$(echo $TEMPLATE | python3 -c "import sys,json; d=json.load(sys.stdin); print(d['data']['myself']['endpoint']['template']['id'])")
-          echo "template_id=$TEMPLATE_ID" >> $GITHUB_OUTPUT
-
-      - name: Update RunPod endpoint image
-        run: |
-          IMAGE="pv8088/fish-speech-tts:${{ github.sha }}"
-          echo "Deploying image: $IMAGE"
-          RESULT=$(curl -s -X POST "https://api.runpod.io/graphql" \
-            -H "Authorization: Bearer ${{ secrets.RUNPOD_API_KEY }}" \
-            -H "Content-Type: application/json" \
-            -d "{\"query\": \"mutation { saveTemplate(input: { id: \\\"${{ steps.get_template.outputs.template_id }}\\\", imageName: \\\"$IMAGE\\\", name: \\\"fish-speech-tts-v2\\\", containerDiskInGb: 10, volumeInGb: 0, dockerArgs: \\\"\\\", env: [{key: \\\"CHECKPOINT_PATH\\\", value: \\\"/runpod-volume/fish-speech/checkpoints/openaudio-s1-mini\\\"}, {key: \\\"DECODER_CHECKPOINT\\\", value: \\\"/runpod-volume/fish-speech/checkpoints/openaudio-s1-mini/codec.pth\\\"}, {key: \\\"DECODER_CONFIG\\\", value: \\\"modded_dac_vq\\\"}, {key: \\\"VOICE_HINDI\\\", value: \\\"/runpod-volume/fish-audio/voices/hindi/reference_hindi.wav\\\"}, {key: \\\"VOICE_ENGLISH\\\", value: \\\"/runpod-volume/fish-audio/voices/english/reference_english.wav\\\"}, {key: \\\"COMPILE_MODEL\\\", value: \\\"false\\\"}] }) { id imageName } }\"}")
-          echo "Result: $RESULT"
+      - name: Print image tag
+        run: echo "New image -> pv8088/fish-speech-tts:${{ github.sha }}"
