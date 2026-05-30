@@ -53,9 +53,9 @@ from fish_speech.models.text2semantic.inference import launch_thread_safe_queue
 from fish_speech.utils.schema import ServeTTSRequest, ServeReferenceAudio
 
 # Configuration
-CHECKPOINT_PATH = os.environ.get("CHECKPOINT_PATH", "/app/checkpoints/openaudio-s1-mini")
-DECODER_CHECKPOINT = os.environ.get("DECODER_CHECKPOINT", f"{CHECKPOINT_PATH}/codec.pth")
-DECODER_CONFIG = os.environ.get("DECODER_CONFIG", "modded_dac_vq")
+CHECKPOINT_PATH    = os.environ.get("LLAMA_CHECKPOINT_PATH", "/app/checkpoints/openaudio-s1-mini")
+DECODER_CHECKPOINT = os.environ.get("DECODER_CHECKPOINT_PATH", f"{CHECKPOINT_PATH}/codec.pth")
+DECODER_CONFIG     = os.environ.get("DECODER_CONFIG_NAME", "modded_dac_vq")
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 HALF_PRECISION = torch.cuda.is_available()
 COMPILE_MODEL = os.environ.get("COMPILE_MODEL", "true").lower() == "true"
