@@ -1,4 +1,4 @@
-FROM fishaudio/fish-speech:latest-server-cuda
+FROM fishaudio/fish-speech:server-cuda
 
 USER root
 WORKDIR /app
