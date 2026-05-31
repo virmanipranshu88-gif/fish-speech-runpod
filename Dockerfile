@@ -13,6 +13,7 @@ ENV DECODER_CONFIG_NAME=modded_dac_vq
 ENV VOICE_HINDI=/runpod-volume/fish-audio/voices/hindi/reference_hindi.wav
 ENV VOICE_ENGLISH=/runpod-volume/fish-audio/voices/english/reference_english.wav
 ENV COMPILE=0
+ENV PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 ENV PYTHONUNBUFFERED=1
 
 ENTRYPOINT []
