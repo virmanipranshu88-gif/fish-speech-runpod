@@ -86,6 +86,8 @@ def start_fish_server():
         "--llama-checkpoint-path", CHECKPOINT_PATH,
         "--decoder-checkpoint-path", DECODER_CHECKPOINT,
         "--decoder-config-name", DECODER_CONFIG,
+        "--device", "cuda",
+        "--half",
     ]
     if COMPILE:
         cmd.append("--compile")
